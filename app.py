@@ -62,10 +62,6 @@ class MainForm(QWidget, FORM_CLASS):
            args[0].modifiers() == QtCore.Qt.ControlModifier:
             # execute query
             self.executeQuery()
-        elif (args[0].key() == QtCore.Qt.Key_Right and
-              args[0].modifiers() == QtCore.Qt.ControlModifier
-              ):
-            self.pbForth.clicked.emit()
         elif args[0].key() == QtCore.Qt.Key_Escape:
             self.pbClose.clicked.emit()
         else:
@@ -75,26 +71,33 @@ class MainForm(QWidget, FORM_CLASS):
     @pyqtSlot()
     def checkConnection(self):
         # let's check if we can connect
-        if self.tryToConnect():
+        res, sqliteSpecific = self.tryToConnect()
+        if res:
             self.messageBox('Success!',
                             'Connection established successfully!',
                             QMessageBox.Information)
             return True
-
-        self.messageBox('Error!', 'Connection can not be established!',
-                        QMessageBox.Critical)
+        if not sqliteSpecific:
+            self.messageBox('Error!', 'Connection can not be established!',
+                            QMessageBox.Critical)
 
     def readyToExecute(self):
-        # we need to check if the query exists
-        if not self.teQuery.toPlainText():
-            self.messageBox('Error!', 'No query to execute!',
+        # just in case if connection is not established yet
+        # we must try to connect
+        res, sqliteSpecific = self.tryToConnect()
+        if sqliteSpecific:
+            # user does not want to create SQLite3 file!!!
+            return False
+
+        if not res and not sqliteSpecific:
+            # somehow connection could not be established
+            self.messageBox('Error!', 'Connection can not be established!',
                             QMessageBox.Critical)
             return False
 
-        # just in case if connection is not established yet
-        # we must try to connect
-        if not self.tryToConnect():
-            self.messageBox('Error!', 'Connection can not be established!',
+        if not self.teQuery.toPlainText():
+            # we need to check if the query exists
+            self.messageBox('Error!', 'No query to execute!',
                             QMessageBox.Critical)
             return False
 
@@ -213,13 +216,23 @@ class MainForm(QWidget, FORM_CLASS):
         )
 
     def tryToConnect(self):
+        """
+        This function trys to connect to the database with connection string
+        provided by the user.
+        Function returns two parameters:
+        1 - whether connection is possible or not
+        2 - always None, except situation which is sqlite specific.
+        SQLite specific situation:
+        if file name provided by the user does not exist and user does not
+        want to create it return True!!!
+        """
         # no text - no connection
         if not self.leConnection.text():
-            return False
+            return False, None
 
         # there is a connection jump out of here
         if self.conn is not None:
-            return True
+            return True, None
 
         # let's try to import module
         try:
@@ -229,7 +242,23 @@ class MainForm(QWidget, FORM_CLASS):
         except Exception as err:
             self.messageBox('Error!', str(err),
                             QMessageBox.Critical)
-            return False
+            return False, None
+
+        # check if this is the file and it exists. SQLite ONLY!!!
+        warnMsg = 'This file {} does not exist! Do you want to create it?'
+        if self.dbProvider.__name__ == 'sqlite3' and\
+           self.leConnection.text().strip() != ':memory:' and\
+           not os.path.isfile(self.leConnection.text().strip()) and\
+           self.messageBox(
+               'Attention!',
+               warnMsg.format(
+                   self.leConnection.text().strip()
+                   ),
+               QMessageBox.Warning,
+               buttons=QMessageBox.Ok | QMessageBox.Cancel
+               ) != QMessageBox.Ok:
+            # User does not want to create file!
+            return False, True
 
         # let's try to make a connection based on provider name
         try:
@@ -237,7 +266,7 @@ class MainForm(QWidget, FORM_CLASS):
             self.conn = self.dbProvider.connect(self.leConnection.text())
             # is it possible???
             if self.conn is not None:
-                return True
+                return True, None
         except (
                 self.dbProvider.Warning, self.dbProvider.InterfaceError,
                 self.dbProvider.DatabaseError, self.dbProvider.DataError,
@@ -249,7 +278,7 @@ class MainForm(QWidget, FORM_CLASS):
             self.messageBox('Error!', str(err),
                             QMessageBox.Critical)
             # no import or no connection created
-            return False
+            return False, None
 
     @pyqtSlot()
     def resetConn(self):
@@ -263,15 +292,15 @@ class MainForm(QWidget, FORM_CLASS):
         # when the provider is changed we need to drop the connection
         self.resetConn()
 
-    def messageBox(self, text, informative, icon):
+    def messageBox(self, text, informative, icon, buttons=QMessageBox.Ok):
         # just to show informative boxes
         msg = QMessageBox(self)
-        msg.setStandardButtons(QMessageBox.Ok)
+        msg.setStandardButtons(buttons)
         msg.setDefaultButton(QMessageBox.Ok)
         msg.setText(text)
         msg.setInformativeText(informative)
         msg.setIcon(icon)
-        msg.exec_()
+        return msg.exec_()
 
 
 if __name__ == '__main__':
