@@ -5,15 +5,17 @@ import importlib
 from collections import OrderedDict
 from datetime import datetime
 from PyQt5.QtWidgets import QApplication
-from PyQt5 import uic, QtCore
+# from PyQt5 import uic, QtCore
+from PyQt5 import QtCore
 from PyQt5.Qt import QMessageBox, pyqtSlot, QWidget
 from model import TableModel
 from paginator import QueryPaginator
 
 # let's try to load the form
 # if there is no form we're stuck!
-FORM_CLASS, X_CLASS = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'app.ui'))
+# FORM_CLASS, X_CLASS = uic.loadUiType(os.path.join(
+#     os.path.dirname(__file__), 'app.ui'))
+from app_form import Ui_qdTest as FORM_CLASS
 
 # back button name
 BACK_BUTTON_NAME = 'pbBack'
@@ -49,6 +51,10 @@ class MainForm(QWidget, FORM_CLASS):
         self.cmbProvider.currentIndexChanged.connect(self.providerChanged)
         self.pbForth.clicked.connect(self.paging)
         self.pbBack.clicked.connect(self.paging)
+
+        # signals and slots for CustomTableView
+        self.tbvResults.upReached.connect(self.pbBack.click)
+        self.tbvResults.downReached.connect(self.pbForth.click)
 
     def closeAll(self):
         # finish up the connection
@@ -206,6 +212,11 @@ class MainForm(QWidget, FORM_CLASS):
         self.tbvResults.setModel(None)
         # assign the new model
         self.tbvResults.setModel(self.model)
+        if forward:
+            self.tbvResults.selectRow(0)
+        else:
+            self.tbvResults.selectRow(self.model.rowCount(None) - 1)
+
         # update last query result time
         self.lblUpdateTime.setText(
             datetime.now().strftime('%Y-%m-%d %H:%M:%S')
