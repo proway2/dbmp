@@ -178,13 +178,19 @@ class MainForm(QWidget, FORM_CLASS):
         # first create the new model
         self.model = TableModel(inputData=[],
                                 columns=self.paginator.getHeaders())
+        # let's save current state of the cursor
+        savedCursor = self.cursor()
         try:
+            # set the cursor to the wait cursor
+            self.setCursor(QtCore.Qt.WaitCursor)
             # feed the model
             for row in func():
                 # data
                 self.model.inputData.append(row[0])
                 # row number
                 self.model.rows.append(row[1])
+            # return the cursor to the previous state
+            self.setCursor(savedCursor)
         except (
                 self.dbProvider.Warning, self.dbProvider.InterfaceError,
                 self.dbProvider.DatabaseError, self.dbProvider.DataError,
@@ -193,6 +199,9 @@ class MainForm(QWidget, FORM_CLASS):
                 self.dbProvider.InternalError,
                 self.dbProvider.ProgrammingError
                 ) as err:
+            # return the cursor to the previous state
+            self.setCursor(savedCursor)
+            # unset current page
             self.lblCurrentPage.setText(str(''))
             self.messageBox('Error!', str(err),
                             QMessageBox.Critical)
