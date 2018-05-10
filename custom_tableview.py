@@ -27,10 +27,10 @@ class CustomTableView(QTableView):
         if args[0].angleDelta().y() > 0:
             goUp = True
         if self.rowAt(0) == 0 and goUp:
-            # this is the first row in viewport and we want to to up
+            # this is the first row in viewport and we want to go up
             self.firstRowReached(args[0])
         elif self.rowAt(self.height()) == -1 and not goUp:
-            # this is the last row in viewport and we want to to down
+            # this is the last row in viewport and we want to go down
             self.lastRowReached(args[0])
         else:
             return QTableView.wheelEvent(self, *args, **kwargs)
