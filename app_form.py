@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'app.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.5.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -13,8 +13,8 @@ class Ui_qdTest(object):
     def setupUi(self, qdTest):
         qdTest.setObjectName("qdTest")
         qdTest.resize(635, 560)
-        self.verticalLayout = QtWidgets.QVBoxLayout(qdTest)
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout(qdTest)
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.hblConnection = QtWidgets.QHBoxLayout()
         self.hblConnection.setObjectName("hblConnection")
         self.gpbConnection = QtWidgets.QGroupBox(qdTest)
@@ -49,10 +49,16 @@ class Ui_qdTest(object):
         self.leRowsPerPage.setObjectName("leRowsPerPage")
         self.horizontalLayout_5.addWidget(self.leRowsPerPage)
         self.hblConnection.addWidget(self.groupBox)
-        self.verticalLayout.addLayout(self.hblConnection)
-        self.hblQuery = QtWidgets.QHBoxLayout()
+        self.verticalLayout_4.addLayout(self.hblConnection)
+        self.splitter = QtWidgets.QSplitter(qdTest)
+        self.splitter.setOrientation(QtCore.Qt.Vertical)
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter.setObjectName("splitter")
+        self.widget = QtWidgets.QWidget(self.splitter)
+        self.widget.setObjectName("widget")
+        self.hblQuery = QtWidgets.QHBoxLayout(self.widget)
         self.hblQuery.setObjectName("hblQuery")
-        self.gpbQuery = QtWidgets.QGroupBox(qdTest)
+        self.gpbQuery = QtWidgets.QGroupBox(self.widget)
         self.gpbQuery.setObjectName("gpbQuery")
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.gpbQuery)
         self.horizontalLayout_4.setContentsMargins(7, 7, 7, 7)
@@ -65,22 +71,25 @@ class Ui_qdTest(object):
         sizePolicy.setHeightForWidth(self.teQuery.sizePolicy().hasHeightForWidth())
         self.teQuery.setSizePolicy(sizePolicy)
         self.teQuery.setMinimumSize(QtCore.QSize(0, 100))
-        self.teQuery.setMaximumSize(QtCore.QSize(16777215, 192))
+        self.teQuery.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.teQuery.setObjectName("teQuery")
         self.horizontalLayout_4.addWidget(self.teQuery)
         self.pbExecute = QtWidgets.QPushButton(self.gpbQuery)
         self.pbExecute.setObjectName("pbExecute")
         self.horizontalLayout_4.addWidget(self.pbExecute)
+        self.teQuery.raise_()
+        self.pbExecute.raise_()
         self.hblQuery.addWidget(self.gpbQuery)
-        self.verticalLayout.addLayout(self.hblQuery)
-        self.hblResults = QtWidgets.QHBoxLayout()
+        self.widget1 = QtWidgets.QWidget(self.splitter)
+        self.widget1.setObjectName("widget1")
+        self.hblResults = QtWidgets.QHBoxLayout(self.widget1)
         self.hblResults.setObjectName("hblResults")
-        self.gpbResults = QtWidgets.QGroupBox(qdTest)
+        self.gpbResults = QtWidgets.QGroupBox(self.widget1)
         self.gpbResults.setObjectName("gpbResults")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.gpbResults)
         self.verticalLayout_2.setContentsMargins(7, 7, 7, 7)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-#         self.tbvResults = QtWidgets.QTableView(self.gpbResults)
+        # self.tbvResults = QtWidgets.QTableView(self.gpbResults)
         self.tbvResults = CustomTableView(self.gpbResults)
         self.tbvResults.setFrameShape(QtWidgets.QFrame.Panel)
         self.tbvResults.setObjectName("tbvResults")
@@ -114,7 +123,7 @@ class Ui_qdTest(object):
         self.hblForthBack.addWidget(self.pbForth)
         self.verticalLayout_2.addLayout(self.hblForthBack)
         self.hblResults.addWidget(self.gpbResults)
-        self.verticalLayout.addLayout(self.hblResults)
+        self.verticalLayout_4.addWidget(self.splitter)
         self.hblClose = QtWidgets.QHBoxLayout()
         self.hblClose.setObjectName("hblClose")
         self.lblUpdate = QtWidgets.QLabel(qdTest)
@@ -137,7 +146,7 @@ class Ui_qdTest(object):
         self.pbClose = QtWidgets.QPushButton(qdTest)
         self.pbClose.setObjectName("pbClose")
         self.hblClose.addWidget(self.pbClose)
-        self.verticalLayout.addLayout(self.hblClose)
+        self.verticalLayout_4.addLayout(self.hblClose)
 
         self.retranslateUi(qdTest)
         QtCore.QMetaObject.connectSlotsByName(qdTest)
@@ -159,4 +168,3 @@ class Ui_qdTest(object):
         self.pbForth.setText(_translate("qdTest", "Forth >"))
         self.lblUpdate.setText(_translate("qdTest", "Results updated:"))
         self.pbClose.setText(_translate("qdTest", "Close"))
-
