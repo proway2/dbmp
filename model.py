@@ -3,7 +3,6 @@ from PyQt5.QtCore import QVariant, Qt
 
 
 class TableModel(QAbstractTableModel):
-
     def __init__(self, parent=None, inputData=[], columns=[]):
         super().__init__(parent)
         # put inputData here
@@ -24,7 +23,7 @@ class TableModel(QAbstractTableModel):
         # let's check if we've got DisplayRole
         if role == Qt.DisplayRole:
             return QVariant(self.inputData[index.row()][index.column()])
-        return QVariant('')
+        return QVariant("")
 
     def rowCount(self, index):
         # just return the lengh of the list
