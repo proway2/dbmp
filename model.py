@@ -3,10 +3,10 @@ from PyQt5.QtCore import QVariant, Qt
 
 
 class TableModel(QAbstractTableModel):
-    def __init__(self, parent=None, inputData=[], columns=[]):
+    def __init__(self, parent=None, input_data=[], columns=[]):
         super().__init__(parent)
-        # put inputData here
-        self.inputData = inputData
+        # put input_data here
+        self.input_data = input_data
         # assign column names
         self.columns = columns
         # reserve space for row numbers
@@ -22,19 +22,19 @@ class TableModel(QAbstractTableModel):
 
         # let's check if we've got DisplayRole
         if role == Qt.DisplayRole:
-            return QVariant(self.inputData[index.row()][index.column()])
+            return QVariant(self.input_data[index.row()][index.column()])
         return QVariant("")
 
     def rowCount(self, index):
         # just return the lengh of the list
-        return len(self.inputData)
+        return len(self.input_data)
 
     def columnCount(self, index):
         # if there is a valid list then return number
         # of the elements in the first row
-        if len(self.inputData):
+        if len(self.input_data):
             # regular return with inputData present
-            return len(self.inputData[0])
+            return len(self.input_data[0])
         elif len(self.columns):
             # no inputData present (empty select)
             # we must return number of columns

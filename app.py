@@ -204,7 +204,7 @@ class MainForm(QWidget, FORM_CLASS):
 
         # first create the new model
         self.model = TableModel(
-            inputData=[], columns=self.paginator.getHeaders()
+            input_data=[], columns=self.paginator.getHeaders()
         )
         # let's save current state of the cursor
         savedCursor = self.cursor()
@@ -214,7 +214,7 @@ class MainForm(QWidget, FORM_CLASS):
             # feed the model
             for row in func():
                 # data
-                self.model.inputData.append(row[0])
+                self.model.input_data.append(row[0])
                 # row number
                 self.model.rows.append(row[1])
             # return the cursor to the previous state
