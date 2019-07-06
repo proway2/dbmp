@@ -4,7 +4,6 @@ import os
 import importlib
 from collections import OrderedDict
 from datetime import datetime
-from PyQt5.QtWidgets import QApplication
 from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.Qt import QMessageBox, pyqtSlot, QWidget
 from model import TableModel
@@ -14,7 +13,7 @@ from custom_tableview import CustomTableView
 
 # let's try to load the form
 # if there is no form we're stuck!
-FORM_CLASS, X_CLASS = uic.loadUiType(
+FORM_CLASS, _ = uic.loadUiType(
     os.path.join(os.path.dirname(__file__), "app.ui")
 )
 
@@ -66,6 +65,7 @@ class MainForm(QWidget, FORM_CLASS):
         self.tbvResults.horizontalHeader().setVisible(True)
         self.verticalLayout_2.addWidget(self.tbvResults)
         self.verticalLayout_2.insertWidget(0, self.tbvResults)
+        return True
 
     def closeAll(self):
         # finish up the connection
@@ -355,7 +355,7 @@ class MainForm(QWidget, FORM_CLASS):
 
 if __name__ == "__main__":
     # create the application
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     # create form
     test = MainForm()
