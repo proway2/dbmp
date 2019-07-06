@@ -14,21 +14,21 @@ from custom_tableview import CustomTableView
 
 # let's try to load the form
 # if there is no form we're stuck!
-FORM_CLASS, X_CLASS = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'app.ui'))
+FORM_CLASS, X_CLASS = uic.loadUiType(
+    os.path.join(os.path.dirname(__file__), "app.ui")
+)
 
 # back button name
-BACK_BUTTON_NAME = 'pbBack'
+BACK_BUTTON_NAME = "pbBack"
 
 
 class MainForm(QWidget, FORM_CLASS):
-
     def __init__(self, parent=None):
         # initialization
         super().__init__(parent)
         self.setupUi(self)
         self.__add_custom_tableview()
-        self.leRowsPerPage.setText('001000')
+        self.leRowsPerPage.setText("001000")
         self.conn = None
         self.model = None
         self.dbProvider = None
@@ -37,10 +37,9 @@ class MainForm(QWidget, FORM_CLASS):
         self.paginator = None
 
         # describe DB providers here (we need to maintain order)
-        self.providers = OrderedDict([
-            ('SQLite', 'sqlite3'),
-            ('PostgreSQL', 'psycopg2'),
-        ])
+        self.providers = OrderedDict(
+            [("SQLite", "sqlite3"), ("PostgreSQL", "psycopg2")]
+        )
         # add items to the list
         self.cmbProvider.addItems(self.providers.keys())
 
@@ -75,9 +74,10 @@ class MainForm(QWidget, FORM_CLASS):
 
     def keyPressEvent(self, *args, **kwargs):
         # check if Ctrl+Enter|Return pressed
-        if (args[0].key() == QtCore.Qt.Key_Enter or
-           args[0].key() == QtCore.Qt.Key_Return) and\
-           args[0].modifiers() == QtCore.Qt.ControlModifier:
+        if (
+            args[0].key() == QtCore.Qt.Key_Enter
+            or args[0].key() == QtCore.Qt.Key_Return
+        ) and args[0].modifiers() == QtCore.Qt.ControlModifier:
             # execute query
             self.executeQuery()
         elif args[0].key() == QtCore.Qt.Key_Escape:
@@ -91,13 +91,18 @@ class MainForm(QWidget, FORM_CLASS):
         # let's check if we can connect
         res, sqliteSpecific = self.tryToConnect()
         if res:
-            self.messageBox('Success!',
-                            'Connection established successfully!',
-                            QMessageBox.Information)
+            self.messageBox(
+                "Success!",
+                "Connection established successfully!",
+                QMessageBox.Information,
+            )
             return True
         if not sqliteSpecific:
-            self.messageBox('Error!', 'Connection can not be established!',
-                            QMessageBox.Critical)
+            self.messageBox(
+                "Error!",
+                "Connection can not be established!",
+                QMessageBox.Critical,
+            )
 
     def readyToExecute(self):
         # just in case if connection is not established yet
@@ -109,19 +114,26 @@ class MainForm(QWidget, FORM_CLASS):
 
         if not res and not sqliteSpecific:
             # somehow connection could not be established
-            self.messageBox('Error!', 'Connection can not be established!',
-                            QMessageBox.Critical)
+            self.messageBox(
+                "Error!",
+                "Connection can not be established!",
+                QMessageBox.Critical,
+            )
             return False
 
         if not self.teQuery.toPlainText():
             # we need to check if the query exists
-            self.messageBox('Error!', 'No query to execute!',
-                            QMessageBox.Critical)
+            self.messageBox(
+                "Error!", "Nothing to execute!", QMessageBox.Critical
+            )
             return False
 
         if int(self.leRowsPerPage.displayText()) < 1:
-            self.messageBox('Error!', 'Rows per page cannot be less than 1!',
-                            QMessageBox.Critical)
+            self.messageBox(
+                "Error!",
+                "Rows per page cannot be less than 1!",
+                QMessageBox.Critical,
+            )
             return False
         # yes, we can
         return True
@@ -137,19 +149,20 @@ class MainForm(QWidget, FORM_CLASS):
             self.paginator = QueryPaginator(
                 numberOfRows=int(self.leRowsPerPage.displayText()),
                 connection=self.conn,
-                query=self.teQuery.toPlainText()
+                query=self.teQuery.toPlainText(),
             )
         except (
-                self.dbProvider.Warning, self.dbProvider.InterfaceError,
-                self.dbProvider.DatabaseError, self.dbProvider.DataError,
-                self.dbProvider.OperationalError,
-                self.dbProvider.IntegrityError,
-                self.dbProvider.InternalError,
-                self.dbProvider.ProgrammingError
-                ) as err:
-            self.lblCurrentPage.setText(str(''))
-            self.messageBox('Error!', str(err),
-                            QMessageBox.Critical)
+            self.dbProvider.Warning,
+            self.dbProvider.InterfaceError,
+            self.dbProvider.DatabaseError,
+            self.dbProvider.DataError,
+            self.dbProvider.OperationalError,
+            self.dbProvider.IntegrityError,
+            self.dbProvider.InternalError,
+            self.dbProvider.ProgrammingError,
+        ) as err:
+            self.lblCurrentPage.setText(str(""))
+            self.messageBox("Error!", str(err), QMessageBox.Critical)
             return False
 
         # emitting clicked signal on pbForth button
@@ -159,9 +172,9 @@ class MainForm(QWidget, FORM_CLASS):
     def paging(self):
         # first check if paginator exists
         if self.paginator is None:
-            self.messageBox('Warning!',
-                            'No results to page!',
-                            QMessageBox.Warning)
+            self.messageBox(
+                "Warning!", "No results to page!", QMessageBox.Warning
+            )
             return
 
         # let's determine back or forth function
@@ -174,22 +187,25 @@ class MainForm(QWidget, FORM_CLASS):
         if forward:
             # can we go forward?
             if not self.paginator.isForthPossible():
-                self.messageBox('Warning!',
-                                'Not possible to go forward!',
-                                QMessageBox.Warning)
+                self.messageBox(
+                    "Warning!",
+                    "Not possible to go forward!",
+                    QMessageBox.Warning,
+                )
                 return
         else:
             # can we go backward?
             if not self.paginator.isBackPossible():
                 # can we go backward?
-                self.messageBox('Warning!',
-                                'Not possible to go back!',
-                                QMessageBox.Warning)
+                self.messageBox(
+                    "Warning!", "Not possible to go back!", QMessageBox.Warning
+                )
                 return
 
         # first create the new model
-        self.model = TableModel(inputData=[],
-                                columns=self.paginator.getHeaders())
+        self.model = TableModel(
+            inputData=[], columns=self.paginator.getHeaders()
+        )
         # let's save current state of the cursor
         savedCursor = self.cursor()
         try:
@@ -204,19 +220,20 @@ class MainForm(QWidget, FORM_CLASS):
             # return the cursor to the previous state
             self.setCursor(savedCursor)
         except (
-                self.dbProvider.Warning, self.dbProvider.InterfaceError,
-                self.dbProvider.DatabaseError, self.dbProvider.DataError,
-                self.dbProvider.OperationalError,
-                self.dbProvider.IntegrityError,
-                self.dbProvider.InternalError,
-                self.dbProvider.ProgrammingError
-                ) as err:
+            self.dbProvider.Warning,
+            self.dbProvider.InterfaceError,
+            self.dbProvider.DatabaseError,
+            self.dbProvider.DataError,
+            self.dbProvider.OperationalError,
+            self.dbProvider.IntegrityError,
+            self.dbProvider.InternalError,
+            self.dbProvider.ProgrammingError,
+        ) as err:
             # return the cursor to the previous state
             self.setCursor(savedCursor)
             # unset current page
-            self.lblCurrentPage.setText(str(''))
-            self.messageBox('Error!', str(err),
-                            QMessageBox.Critical)
+            self.lblCurrentPage.setText(str(""))
+            self.messageBox("Error!", str(err), QMessageBox.Critical)
             # clean the model
             self.tbvResults.setModel(None)
             return False
@@ -224,9 +241,11 @@ class MainForm(QWidget, FORM_CLASS):
         if self.paginator.isDataQuery and self.paginator.noMoreResults:
             # additional check in case the select query is fully depleted
             if not self.paginator.isForthPossible():
-                self.messageBox('Warning!',
-                                'Not possible to go forward!',
-                                QMessageBox.Warning)
+                self.messageBox(
+                    "Warning!",
+                    "Not possible to go forward!",
+                    QMessageBox.Warning,
+                )
                 return
 
         # clean the model
@@ -240,12 +259,10 @@ class MainForm(QWidget, FORM_CLASS):
 
         # update last query result time
         self.lblUpdateTime.setText(
-            datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
         # update current page number
-        self.lblCurrentPage.setText(
-            str(self.paginator.realCurrentPage)
-        )
+        self.lblCurrentPage.setText(str(self.paginator.realCurrentPage))
 
     def tryToConnect(self):
         """
@@ -272,23 +289,23 @@ class MainForm(QWidget, FORM_CLASS):
                 str(self.providers[self.cmbProvider.currentData(0)])
             )
         except Exception as err:
-            self.messageBox('Error!', str(err),
-                            QMessageBox.Critical)
+            self.messageBox("Error!", str(err), QMessageBox.Critical)
             return False, None
 
         # check if this is the file and it exists. SQLite ONLY!!!
-        warnMsg = 'This file {} does not exist! Do you want to create it?'
-        if self.dbProvider.__name__ == 'sqlite3' and\
-           self.leConnection.text().strip() != ':memory:' and\
-           not os.path.isfile(self.leConnection.text().strip()) and\
-           self.messageBox(
-               'Attention!',
-               warnMsg.format(
-                   self.leConnection.text().strip()
-                   ),
-               QMessageBox.Warning,
-               buttons=QMessageBox.Ok | QMessageBox.Cancel
-               ) != QMessageBox.Ok:
+        warnMsg = "This file {} does not exist! Do you want to create it?"
+        if (
+            self.dbProvider.__name__ == "sqlite3"
+            and self.leConnection.text().strip() != ":memory:"
+            and not os.path.isfile(self.leConnection.text().strip())
+            and self.messageBox(
+                "Attention!",
+                warnMsg.format(self.leConnection.text().strip()),
+                QMessageBox.Warning,
+                buttons=QMessageBox.Ok | QMessageBox.Cancel,
+            )
+            != QMessageBox.Ok
+        ):
             # User does not want to create file!
             return False, True
 
@@ -300,15 +317,16 @@ class MainForm(QWidget, FORM_CLASS):
             if self.conn is not None:
                 return True, None
         except (
-                self.dbProvider.Warning, self.dbProvider.InterfaceError,
-                self.dbProvider.DatabaseError, self.dbProvider.DataError,
-                self.dbProvider.OperationalError,
-                self.dbProvider.IntegrityError,
-                self.dbProvider.InternalError,
-                self.dbProvider.ProgrammingError
-                ) as err:
-            self.messageBox('Error!', str(err),
-                            QMessageBox.Critical)
+            self.dbProvider.Warning,
+            self.dbProvider.InterfaceError,
+            self.dbProvider.DatabaseError,
+            self.dbProvider.DataError,
+            self.dbProvider.OperationalError,
+            self.dbProvider.IntegrityError,
+            self.dbProvider.InternalError,
+            self.dbProvider.ProgrammingError,
+        ) as err:
+            self.messageBox("Error!", str(err), QMessageBox.Critical)
             # no import or no connection created
             return False, None
 
@@ -335,7 +353,7 @@ class MainForm(QWidget, FORM_CLASS):
         return msg.exec_()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # create the application
     app = QApplication(sys.argv)
 

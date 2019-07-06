@@ -1,9 +1,5 @@
-
-class QueryPaginator():
-    def __init__(self,
-                 numberOfRows=1000,
-                 query=None,
-                 connection=None):
+class QueryPaginator:
+    def __init__(self, numberOfRows=1000, query=None, connection=None):
         if connection is None:
             return
         # define default page
@@ -23,7 +19,7 @@ class QueryPaginator():
         if query is not None:
             self.executeQuery(query)
 
-    def executeQuery(self, query=''):
+    def executeQuery(self, query=""):
         """Executes query"""
         # let's try to execute query
         # obtain the cursor before the query
@@ -81,8 +77,7 @@ class QueryPaginator():
 
     def isForthPossible(self):
         """Returns True if going forward is possible"""
-        if self.query is None or\
-           self.noMoreResults:
+        if self.query is None or self.noMoreResults:
             # nothing to do
             return False
         # we can go forward
@@ -99,10 +94,10 @@ class QueryPaginator():
             # creates, inserts, updates, deletes
             if self.curs.rowcount == -1:
                 # create statement
-                yield ('Successfully executed!',), 1
+                yield ("Successfully executed!",), 1
             else:
                 # insert or update or delete
-                yield ('Affected rows: {}'.format(self.curs.rowcount),), 1
+                yield ("Affected rows: {}".format(self.curs.rowcount),), 1
             self.lastFetchRows = 1
             self.noMoreResults = True
         else:
@@ -114,7 +109,7 @@ class QueryPaginator():
         # return list of the columns headers
         if not self.isDataQuery:
             # creates, inserts, updates, deletes
-            return ['Result']
+            return ["Result"]
         else:
             # select
             return [descr[0] for descr in self.curs.description]
@@ -142,8 +137,7 @@ class QueryPaginator():
                 yield row, self.currentPage * self.numberOfRows + num + 1
             else:
                 # return the row and the number of this row
-                yield row, (self.currentPage - 2) *\
-                            self.numberOfRows + num + 1
+                yield row, (self.currentPage - 2) * self.numberOfRows + num + 1
 
         if not self.lastFetchRows and prevFetch != -1:
             # no more results if lastFetchRows == 0 and prevFetch is not -1 !
