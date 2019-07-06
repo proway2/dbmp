@@ -2,13 +2,12 @@
 import sys
 import os
 import importlib
-from collections import OrderedDict
 from datetime import datetime
 from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.Qt import QMessageBox, pyqtSlot, QWidget
+
 from model import TableModel
 from paginator import QueryPaginator
-
 from custom_tableview import CustomTableView
 
 # let's try to load the form
@@ -30,24 +29,23 @@ class MainForm(QWidget, FORM_CLASS):
         self.leRowsPerPage.setText("001000")
         self.conn = None
         self.model = None
-        self.dbProvider = None
+        self.db_provider = None
 
         # paginator
         self.paginator = None
 
-        # describe DB providers here (we need to maintain order)
-        self.providers = OrderedDict(
-            [("SQLite", "sqlite3"), ("PostgreSQL", "psycopg2")]
-        )
+        # describe DB providers here
+        # order needs to be maintained to ensure that SQLite is the first one
+        self.providers = {"SQLite": "sqlite3", "PostgreSQL": "psycopg2"}
         # add items to the list
         self.cmbProvider.addItems(self.providers.keys())
 
         # connect signals
-        self.pbCheck.clicked.connect(self.checkConnection)
-        self.pbExecute.clicked.connect(self.executeQuery)
-        self.pbClose.clicked.connect(self.closeAll)
-        self.leConnection.editingFinished.connect(self.resetConn)
-        self.cmbProvider.currentIndexChanged.connect(self.providerChanged)
+        self.pbCheck.clicked.connect(self.check_connection)
+        self.pbExecute.clicked.connect(self.execute_query)
+        self.pbClose.clicked.connect(self.close_all)
+        self.leConnection.editingFinished.connect(self.reset_conn)
+        self.cmbProvider.currentIndexChanged.connect(self.provider_changed)
         self.pbForth.clicked.connect(self.paging)
         self.pbBack.clicked.connect(self.paging)
 
@@ -67,9 +65,9 @@ class MainForm(QWidget, FORM_CLASS):
         self.verticalLayout_2.insertWidget(0, self.tbvResults)
         return True
 
-    def closeAll(self):
+    def close_all(self):
         # finish up the connection
-        self.resetConn()
+        self.reset_conn()
         self.close()
 
     def keyPressEvent(self, *args, **kwargs):
@@ -79,7 +77,7 @@ class MainForm(QWidget, FORM_CLASS):
             or args[0].key() == QtCore.Qt.Key_Return
         ) and args[0].modifiers() == QtCore.Qt.ControlModifier:
             # execute query
-            self.executeQuery()
+            self.execute_query()
         elif args[0].key() == QtCore.Qt.Key_Escape:
             self.pbClose.clicked.emit()
         else:
@@ -87,34 +85,34 @@ class MainForm(QWidget, FORM_CLASS):
             return QWidget.keyPressEvent(self, *args, **kwargs)
 
     @pyqtSlot()
-    def checkConnection(self):
+    def check_connection(self):
         # let's check if we can connect
-        res, sqliteSpecific = self.tryToConnect()
+        res, sqliteSpecific = self.try_to_connect()
         if res:
-            self.messageBox(
+            self.message_box(
                 "Success!",
                 "Connection established successfully!",
                 QMessageBox.Information,
             )
             return True
         if not sqliteSpecific:
-            self.messageBox(
+            self.message_box(
                 "Error!",
                 "Connection can not be established!",
                 QMessageBox.Critical,
             )
 
-    def readyToExecute(self):
+    def ready_to_execute(self):
         # just in case if connection is not established yet
         # we must try to connect
-        res, sqliteSpecific = self.tryToConnect()
+        res, sqliteSpecific = self.try_to_connect()
         if sqliteSpecific:
             # user does not want to create SQLite3 file!!!
             return False
 
         if not res and not sqliteSpecific:
             # somehow connection could not be established
-            self.messageBox(
+            self.message_box(
                 "Error!",
                 "Connection can not be established!",
                 QMessageBox.Critical,
@@ -123,13 +121,13 @@ class MainForm(QWidget, FORM_CLASS):
 
         if not self.teQuery.toPlainText():
             # we need to check if the query exists
-            self.messageBox(
+            self.message_box(
                 "Error!", "Nothing to execute!", QMessageBox.Critical
             )
             return False
 
         if int(self.leRowsPerPage.displayText()) < 1:
-            self.messageBox(
+            self.message_box(
                 "Error!",
                 "Rows per page cannot be less than 1!",
                 QMessageBox.Critical,
@@ -139,9 +137,9 @@ class MainForm(QWidget, FORM_CLASS):
         return True
 
     @pyqtSlot()
-    def executeQuery(self):
+    def execute_query(self):
         # check if we're ready
-        if not self.readyToExecute():
+        if not self.ready_to_execute():
             return False
 
         # let's try to create paginator object and execute query inside of it
@@ -152,17 +150,17 @@ class MainForm(QWidget, FORM_CLASS):
                 query=self.teQuery.toPlainText(),
             )
         except (
-            self.dbProvider.Warning,
-            self.dbProvider.InterfaceError,
-            self.dbProvider.DatabaseError,
-            self.dbProvider.DataError,
-            self.dbProvider.OperationalError,
-            self.dbProvider.IntegrityError,
-            self.dbProvider.InternalError,
-            self.dbProvider.ProgrammingError,
+            self.db_provider.Warning,
+            self.db_provider.InterfaceError,
+            self.db_provider.DatabaseError,
+            self.db_provider.DataError,
+            self.db_provider.OperationalError,
+            self.db_provider.IntegrityError,
+            self.db_provider.InternalError,
+            self.db_provider.ProgrammingError,
         ) as err:
             self.lblCurrentPage.setText(str(""))
-            self.messageBox("Error!", str(err), QMessageBox.Critical)
+            self.message_box("Error!", str(err), QMessageBox.Critical)
             return False
 
         # emitting clicked signal on pbForth button
@@ -172,7 +170,7 @@ class MainForm(QWidget, FORM_CLASS):
     def paging(self):
         # first check if paginator exists
         if self.paginator is None:
-            self.messageBox(
+            self.message_box(
                 "Warning!", "No results to page!", QMessageBox.Warning
             )
             return
@@ -187,7 +185,7 @@ class MainForm(QWidget, FORM_CLASS):
         if forward:
             # can we go forward?
             if not self.paginator.isForthPossible():
-                self.messageBox(
+                self.message_box(
                     "Warning!",
                     "Not possible to go forward!",
                     QMessageBox.Warning,
@@ -197,7 +195,7 @@ class MainForm(QWidget, FORM_CLASS):
             # can we go backward?
             if not self.paginator.isBackPossible():
                 # can we go backward?
-                self.messageBox(
+                self.message_box(
                     "Warning!", "Not possible to go back!", QMessageBox.Warning
                 )
                 return
@@ -220,20 +218,20 @@ class MainForm(QWidget, FORM_CLASS):
             # return the cursor to the previous state
             self.setCursor(savedCursor)
         except (
-            self.dbProvider.Warning,
-            self.dbProvider.InterfaceError,
-            self.dbProvider.DatabaseError,
-            self.dbProvider.DataError,
-            self.dbProvider.OperationalError,
-            self.dbProvider.IntegrityError,
-            self.dbProvider.InternalError,
-            self.dbProvider.ProgrammingError,
+            self.db_provider.Warning,
+            self.db_provider.InterfaceError,
+            self.db_provider.DatabaseError,
+            self.db_provider.DataError,
+            self.db_provider.OperationalError,
+            self.db_provider.IntegrityError,
+            self.db_provider.InternalError,
+            self.db_provider.ProgrammingError,
         ) as err:
             # return the cursor to the previous state
             self.setCursor(savedCursor)
             # unset current page
             self.lblCurrentPage.setText(str(""))
-            self.messageBox("Error!", str(err), QMessageBox.Critical)
+            self.message_box("Error!", str(err), QMessageBox.Critical)
             # clean the model
             self.tbvResults.setModel(None)
             return False
@@ -241,7 +239,7 @@ class MainForm(QWidget, FORM_CLASS):
         if self.paginator.isDataQuery and self.paginator.noMoreResults:
             # additional check in case the select query is fully depleted
             if not self.paginator.isForthPossible():
-                self.messageBox(
+                self.message_box(
                     "Warning!",
                     "Not possible to go forward!",
                     QMessageBox.Warning,
@@ -264,7 +262,7 @@ class MainForm(QWidget, FORM_CLASS):
         # update current page number
         self.lblCurrentPage.setText(str(self.paginator.realCurrentPage))
 
-    def tryToConnect(self):
+    def try_to_connect(self):
         """
         This function trys to connect to the database with connection string
         provided by the user.
@@ -285,20 +283,20 @@ class MainForm(QWidget, FORM_CLASS):
 
         # let's try to import module
         try:
-            self.dbProvider = importlib.import_module(
+            self.db_provider = importlib.import_module(
                 str(self.providers[self.cmbProvider.currentData(0)])
             )
         except Exception as err:
-            self.messageBox("Error!", str(err), QMessageBox.Critical)
+            self.message_box("Error!", str(err), QMessageBox.Critical)
             return False, None
 
         # check if this is the file and it exists. SQLite ONLY!!!
         warnMsg = "This file {} does not exist! Do you want to create it?"
         if (
-            self.dbProvider.__name__ == "sqlite3"
+            self.db_provider.__name__ == "sqlite3"
             and self.leConnection.text().strip() != ":memory:"
             and not os.path.isfile(self.leConnection.text().strip())
-            and self.messageBox(
+            and self.message_box(
                 "Attention!",
                 warnMsg.format(self.leConnection.text().strip()),
                 QMessageBox.Warning,
@@ -312,37 +310,37 @@ class MainForm(QWidget, FORM_CLASS):
         # let's try to make a connection based on provider name
         try:
             # create the connection
-            self.conn = self.dbProvider.connect(self.leConnection.text())
+            self.conn = self.db_provider.connect(self.leConnection.text())
             # is it possible???
             if self.conn is not None:
                 return True, None
         except (
-            self.dbProvider.Warning,
-            self.dbProvider.InterfaceError,
-            self.dbProvider.DatabaseError,
-            self.dbProvider.DataError,
-            self.dbProvider.OperationalError,
-            self.dbProvider.IntegrityError,
-            self.dbProvider.InternalError,
-            self.dbProvider.ProgrammingError,
+            self.db_provider.Warning,
+            self.db_provider.InterfaceError,
+            self.db_provider.DatabaseError,
+            self.db_provider.DataError,
+            self.db_provider.OperationalError,
+            self.db_provider.IntegrityError,
+            self.db_provider.InternalError,
+            self.db_provider.ProgrammingError,
         ) as err:
-            self.messageBox("Error!", str(err), QMessageBox.Critical)
+            self.message_box("Error!", str(err), QMessageBox.Critical)
             # no import or no connection created
             return False, None
 
     @pyqtSlot()
-    def resetConn(self):
+    def reset_conn(self):
         # drop the connection if it's established
         if self.conn is not None:
             self.conn.close()
             self.conn = None
 
     @pyqtSlot(int)
-    def providerChanged(self, index):
+    def provider_changed(self, index):
         # when the provider is changed we need to drop the connection
-        self.resetConn()
+        self.reset_conn()
 
-    def messageBox(self, text, informative, icon, buttons=QMessageBox.Ok):
+    def message_box(self, text, informative, icon, buttons=QMessageBox.Ok):
         # just to show informative boxes
         msg = QMessageBox(self)
         msg.setStandardButtons(buttons)
@@ -358,8 +356,8 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
     # create form
-    test = MainForm()
-    test.show()
+    form = MainForm()
+    form.show()
 
     # start main loop
     sys.exit(app.exec_())
