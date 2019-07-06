@@ -5,17 +5,17 @@ import importlib
 from collections import OrderedDict
 from datetime import datetime
 from PyQt5.QtWidgets import QApplication
-# from PyQt5 import uic, QtCore
-from PyQt5 import QtCore
+from PyQt5 import uic, QtCore, QtWidgets
 from PyQt5.Qt import QMessageBox, pyqtSlot, QWidget
 from model import TableModel
 from paginator import QueryPaginator
 
+from custom_tableview import CustomTableView
+
 # let's try to load the form
 # if there is no form we're stuck!
-# FORM_CLASS, X_CLASS = uic.loadUiType(os.path.join(
-#     os.path.dirname(__file__), 'app.ui'))
-from app_form import Ui_qdTest as FORM_CLASS
+FORM_CLASS, X_CLASS = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), 'app.ui'))
 
 # back button name
 BACK_BUTTON_NAME = 'pbBack'
@@ -27,6 +27,7 @@ class MainForm(QWidget, FORM_CLASS):
         # initialization
         super().__init__(parent)
         self.setupUi(self)
+        self.__add_custom_tableview()
         self.leRowsPerPage.setText('001000')
         self.conn = None
         self.model = None
@@ -55,6 +56,17 @@ class MainForm(QWidget, FORM_CLASS):
         # signals and slots for CustomTableView
         self.tbvResults.upReached.connect(self.pbBack.click)
         self.tbvResults.downReached.connect(self.pbForth.click)
+
+    def __add_custom_tableview(self) -> bool:
+        self.verticalLayout_2.removeWidget(self.tbvResults)
+        self.tbvResults.deleteLater()
+        self.tbvResults = None
+        self.tbvResults = CustomTableView(self.gpbResults)
+        self.tbvResults.setFrameShape(QtWidgets.QFrame.Panel)
+        self.tbvResults.setObjectName("tbvResults")
+        self.tbvResults.horizontalHeader().setVisible(True)
+        self.verticalLayout_2.addWidget(self.tbvResults)
+        self.verticalLayout_2.insertWidget(0, self.tbvResults)
 
     def closeAll(self):
         # finish up the connection
