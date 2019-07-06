@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>635</width>
-    <height>560</height>
+    <width>1000</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,7 +56,7 @@
       <widget class="QGroupBox" name="groupBox">
        <property name="maximumSize">
         <size>
-         <width>100</width>
+         <width>150</width>
          <height>16777215</height>
         </size>
        </property>
@@ -71,7 +71,7 @@
          <widget class="QLineEdit" name="leRowsPerPage">
           <property name="maximumSize">
            <size>
-            <width>70</width>
+            <width>100</width>
             <height>16777215</height>
            </size>
           </property>
