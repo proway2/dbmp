@@ -3,12 +3,14 @@ from PyQt5.QtCore import QVariant, Qt
 
 
 class TableModel(QAbstractTableModel):
-    def __init__(self, parent=None, input_data=[], columns=[]):
+    # def __init__(self, parent=None, input_data=[], columns=[]):
+    def __init__(self, parent=None, columns=None):
         super().__init__(parent)
         # put input_data here
-        self.input_data = input_data
+        # self.input_data = input_data
+        self.input_data = []
         # assign column names
-        self.columns = columns
+        self.columns = columns or []
         # reserve space for row numbers
         self.rows = []
 

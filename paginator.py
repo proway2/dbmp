@@ -1,11 +1,13 @@
 class QueryPaginator:
-    def __init__(self, numberOfRows=1000, query=None, connection=None):
+    def __init__(
+        self, numberOfRows: int = 1000, query: str = None, connection=None
+    ):
         if connection is None:
             return
         # define default page
-        self.currentPage = 0
+        self.current_page = 0
         # define default number of rows per fetch
-        self.numberOfRows = numberOfRows
+        self.number_of_rows = numberOfRows
         # we need to run query on the open connection
         self.conn = connection
         # we need to know current cursor
@@ -13,13 +15,13 @@ class QueryPaginator:
         # we need the query to run
         self.query = query
         # we need an indicator to check if query is depleted
-        self.noMoreResults = False
-        self.lastFetchRows = -1
+        self.no_more_results = False
+        self.last_fetch_rows = -1
         # execute query at creation
         if query is not None:
-            self.executeQuery(query)
+            self.execute_query(query)
 
-    def executeQuery(self, query=""):
+    def execute_query(self, query: str = ""):
         """Executes query"""
         # let's try to execute query
         # obtain the cursor before the query
@@ -30,31 +32,31 @@ class QueryPaginator:
         # commit it just in case
         self.conn.commit()
         # reset variables
-        self.lastFetchRows = -1
-        self.noMoreResults = False
+        self.last_fetch_rows = -1
+        self.no_more_results = False
 
     @property
-    def realCurrentPage(self):
+    def real_current_page(self):
         """Returns the number of current page"""
         if self.query is None:
             # nothing to do
             return
         # this is the actual page number
-        return 1 if self.currentPage <= 0 else self.currentPage
+        return 1 if self.current_page <= 0 else self.current_page
 
     @property
-    def isDataQuery(self):
+    def is_data_query(self):
         """Returns True if this was 'select' query"""
         if self.query and self.curs:
             return False if self.curs.description is None else True
 
-    def isBackPossible(self):
+    def is_back_possible(self):
         """Returns True if going back is possible"""
         if self.query is None:
             # nothing to do
             return False
         # returns TRUE if going back is possible
-        return True if self.currentPage > 1 else False
+        return True if self.current_page > 1 else False
 
     def back(self):
         """Generator to feed the rows of the query when going backward"""
@@ -62,22 +64,22 @@ class QueryPaginator:
             # nothing to do
             return
 
-        if self.currentPage <= 1:
+        if self.current_page <= 1:
             return
         # REexecute query
-        self.executeQuery(self.query)
+        self.execute_query(self.query)
         # we need to check if this is data query
         if self.curs.description is not None:
             # dry runs
-            for i in range(1, self.currentPage - 1):
-                self.curs.fetchmany(self.numberOfRows)
-                i = i
+            for _ in range(1, self.current_page - 1):
+                self.curs.fetchmany(self.number_of_rows)
+                # i = i
             # actual run
             yield from self.__feeder(forward=False)
 
-    def isForthPossible(self):
+    def is_forth_possible(self):
         """Returns True if going forward is possible"""
-        if self.query is None or self.noMoreResults:
+        if self.query is None or self.no_more_results:
             # nothing to do
             return False
         # we can go forward
@@ -90,7 +92,7 @@ class QueryPaginator:
             return
 
         # this is no data (select) query
-        if not self.isDataQuery:
+        if not self.is_data_query:
             # creates, inserts, updates, deletes
             if self.curs.rowcount == -1:
                 # create statement
@@ -98,16 +100,16 @@ class QueryPaginator:
             else:
                 # insert or update or delete
                 yield ("Affected rows: {}".format(self.curs.rowcount),), 1
-            self.lastFetchRows = 1
-            self.noMoreResults = True
+            self.last_fetch_rows = 1
+            self.no_more_results = True
         else:
             # select query
             yield from self.__feeder()
 
-    def getHeaders(self):
+    def headers(self):
         """Returns list of headers for the query"""
         # return list of the columns headers
-        if not self.isDataQuery:
+        if not self.is_data_query:
             # creates, inserts, updates, deletes
             return ["Result"]
         else:
@@ -123,30 +125,32 @@ class QueryPaginator:
         backward direction is forward=False
         """
         # select query ONLY!!!
-        if not self.isDataQuery or self.noMoreResults:
+        if not self.is_data_query or self.no_more_results:
             return
 
         # must store prev rows fetched to check if this select returns 0 rows
-        prevFetch = self.lastFetchRows
+        prevFetch = self.last_fetch_rows
         # we need to check if this is data query
-        self.lastFetchRows = 0
-        for num, row in enumerate(self.curs.fetchmany(self.numberOfRows)):
-            self.lastFetchRows += 1
+        self.last_fetch_rows = 0
+        for num, row in enumerate(self.curs.fetchmany(self.number_of_rows)):
+            self.last_fetch_rows += 1
             # return the row and the number of this row
             if forward:
-                yield row, self.currentPage * self.numberOfRows + num + 1
+                yield row, self.current_page * self.number_of_rows + num + 1
             else:
                 # return the row and the number of this row
-                yield row, (self.currentPage - 2) * self.numberOfRows + num + 1
+                yield row, (
+                    self.current_page - 2
+                ) * self.number_of_rows + num + 1
 
-        if not self.lastFetchRows and prevFetch != -1:
+        if not self.last_fetch_rows and prevFetch != -1:
             # no more results if lastFetchRows == 0 and prevFetch is not -1 !
-            self.noMoreResults = True
+            self.no_more_results = True
         else:
             # we need to change current page
             # and check if the query has any rows
             # update current page number
             if forward:
-                self.currentPage += 1
-            elif self.currentPage > 0:
-                self.currentPage -= 1
+                self.current_page += 1
+            elif self.current_page > 0:
+                self.current_page -= 1
