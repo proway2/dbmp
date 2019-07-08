@@ -7,7 +7,6 @@ from paginator import QueryPaginator
 
 
 class TestSQLitePaginatorFeeder(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.conn = sqlite3.connect(":memory:")
