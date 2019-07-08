@@ -7,7 +7,6 @@ from paginator import QueryPaginator
 
 
 class TestSQLitePaginatorFeeder(unittest.TestCase):
-    paginator = None
 
     @classmethod
     def setUpClass(cls):
