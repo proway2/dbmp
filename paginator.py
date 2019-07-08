@@ -1,44 +1,54 @@
 class QueryPaginator:
-    def __init__(
-        self, numberOfRows: int = 1000, query: str = None, connection=None
-    ):
-        if connection is None:
-            return
+    def __init__(self, rows_num: int = 1000, query: str = "", connection=None):
+        if not connection:
+            raise ValueError("no connection provided")
+        if not (isinstance(query, str) and query.strip()):
+            raise ValueError("no query provided")
+        if not hasattr(connection, "cursor") and not hasattr(
+            connection, "commit"
+        ):
+            raise ValueError("unexpected connection")
+        if rows_num < 1:
+            raise ValueError("number of rows must be greater than 0")
         # define default page
         self.current_page = 0
         # define default number of rows per fetch
-        self.number_of_rows = numberOfRows
+        self.number_of_rows = rows_num
         # we need to run query on the open connection
         self.conn = connection
         # we need to know current cursor
         self.curs = None
         # we need the query to run
         self.query = query
-        # we need an indicator to check if query is depleted
-        self.no_more_results = False
-        self.last_fetch_rows = -1
         # execute query at creation
-        if query is not None:
-            self.execute_query(query)
+        self.__execute_query(query)
+        self.fetched = False
 
-    def execute_query(self, query: str = ""):
+    def __execute_query(
+        self, query: str = "", reset_counter: bool = True
+    ) -> bool:
         """Executes query"""
         # let's try to execute query
         # obtain the cursor before the query
-        if self.curs is None:
-            self.curs = self.conn.cursor()
+        if not self.curs:
+            try:
+                self.curs = self.conn.cursor()
+            except Exception:
+                raise
         # execute query
         self.curs.execute(query)
         # commit it just in case
         self.conn.commit()
         # reset variables
-        self.last_fetch_rows = -1
-        self.no_more_results = False
+        self.fetched = False
+        if reset_counter:
+            self.current_page = 0
+        return True
 
     @property
     def real_current_page(self):
         """Returns the number of current page"""
-        if self.query is None:
+        if not self.query:
             # nothing to do
             return
         # this is the actual page number
@@ -46,111 +56,77 @@ class QueryPaginator:
 
     @property
     def is_data_query(self):
-        """Returns True if this was 'select' query"""
+        """Returns True if this is 'select' query"""
         if self.query and self.curs:
             return False if self.curs.description is None else True
 
-    def is_back_possible(self):
-        """Returns True if going back is possible"""
-        if self.query is None:
-            # nothing to do
-            return False
-        # returns TRUE if going back is possible
-        return True if self.current_page > 1 else False
-
-    def back(self):
-        """Generator to feed the rows of the query when going backward"""
-        if self.query is None:
-            # nothing to do
-            return
-
-        if self.current_page <= 1:
-            return
-        # REexecute query
-        self.execute_query(self.query)
-        # we need to check if this is data query
-        if self.curs.description is not None:
-            # dry runs
-            for _ in range(1, self.current_page - 1):
-                self.curs.fetchmany(self.number_of_rows)
-                # i = i
-            # actual run
-            yield from self.__feeder(forward=False)
-
-    def is_forth_possible(self):
-        """Returns True if going forward is possible"""
-        if self.query is None or self.no_more_results:
-            # nothing to do
-            return False
-        # we can go forward
-        return True
-
-    def forth(self):
-        """Generator to feed the rows of the query when going forward"""
-        if self.query is None:
-            # nothing to do
-            return
-
-        # this is no data (select) query
-        if not self.is_data_query:
-            # creates, inserts, updates, deletes
-            if self.curs.rowcount == -1:
-                # create statement
-                yield ("Successfully executed!",), 1
-            else:
-                # insert or update or delete
-                yield ("Affected rows: {}".format(self.curs.rowcount),), 1
-            self.last_fetch_rows = 1
-            self.no_more_results = True
-        else:
-            # select query
-            yield from self.__feeder()
-
-    def headers(self):
+    def headers(self) -> list:
         """Returns list of headers for the query"""
         # return list of the columns headers
-        if not self.is_data_query:
-            # creates, inserts, updates, deletes
-            return ["Result"]
-        else:
-            # select
+        if self.is_data_query:
+            # DML
             return [descr[0] for descr in self.curs.description]
+        # DDL
+        return ["Result"]
 
-    def __feeder(self, forward=True):
-        """
-        Returns rows from query in different direction.
+    def feeder(self, forward: bool = True):
+        """Feeds the data from the query's result."""
+        feeder_func = self.sql_type_factory(self.is_data_query)
+        yield from feeder_func(forward)
+        self.fetched = True
 
-        Keyword arguments:
-        forward -- sets the direction (default True),
-        backward direction is forward=False
-        """
-        # select query ONLY!!!
-        if not self.is_data_query or self.no_more_results:
-            return
+    def sql_type_factory(self, data_query=True):
+        """Factory function returns handler for DDL or DML queries."""
+        if data_query:
+            # select
+            return self.__dml_feeder
+        # create, insert, delete
+        return self.__ddl_feeder
 
-        # must store prev rows fetched to check if this select returns 0 rows
-        prevFetch = self.last_fetch_rows
-        # we need to check if this is data query
-        self.last_fetch_rows = 0
+    def __dml_feeder(self, forward=True):
+        """Feeder for DML (SELECT) type queries."""
+        if not forward:
+            if self.current_page <= 1:
+                raise StopIteration()
+            # in order to get back we need to rerun query from the start
+            # REexecute query
+            self.__execute_query(self.query, reset_counter=False)
+            # fast forward to the desired page
+            self.__fast_forward()
+        # select
         for num, row in enumerate(self.curs.fetchmany(self.number_of_rows)):
-            self.last_fetch_rows += 1
-            # return the row and the number of this row
-            if forward:
-                yield row, self.current_page * self.number_of_rows + num + 1
-            else:
-                # return the row and the number of this row
-                yield row, (
-                    self.current_page - 2
-                ) * self.number_of_rows + num + 1
+            yield row, self.current_page * self.number_of_rows + num + 1
+        # in order to maintain current_page at the actual figure we
+        # must raise exception when empty runs discovered
+        try:
+            num
+        except UnboundLocalError:
+            raise StopIteration()
+        self.__change_current_page(forward)
 
-        if not self.last_fetch_rows and prevFetch != -1:
-            # no more results if lastFetchRows == 0 and prevFetch is not -1 !
-            self.no_more_results = True
+    def __change_current_page(self, forward: bool = True):
+        """Maintaines the current_page at the actual figure."""
+        if forward:
+            self.current_page += 1
         else:
-            # we need to change current page
-            # and check if the query has any rows
-            # update current page number
-            if forward:
-                self.current_page += 1
-            elif self.current_page > 0:
-                self.current_page -= 1
+            self.current_page = (
+                0 if self.current_page <= 1 else self.current_page - 1
+            )
+
+    def __fast_forward(self):
+        """Fast forward some pages to make going back possible."""
+        # dry runs
+        for _ in range(0, self.current_page - 2):
+            self.curs.fetchmany(self.number_of_rows)
+
+    def __ddl_feeder(self, forward=True):
+        """Feeder for DDL type queries."""
+        # creates, inserts, updates, deletes
+        if not forward or self.fetched:
+            raise StopIteration()
+        if self.curs.rowcount == -1:
+            # create statement
+            yield ("Successfully executed!",), 1
+        else:
+            # insert or update or delete
+            yield ("Affected rows: {}".format(self.curs.rowcount),), 1
