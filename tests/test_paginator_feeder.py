@@ -1,15 +1,6 @@
 import unittest
 import sqlite3
-from settings import (
-    CREATE,
-    INSERT,
-    # UPDATE,
-    # UPDATE_EMPTY,
-    SELECT,
-    # SELECT_EMPTY,
-    # DELETE,
-    # DELETE_EMPTY,
-)
+from settings import CREATE, INSERT, SELECT
 from paginator import QueryPaginator
 
 # TESTS ORDER MATTERS!
@@ -46,8 +37,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_b_create_forward(self):
         """CREATE forward again"""
         paginator = QueryPaginator(
-            rows_num=10, query=CREATE,
-            connection=self.local_conn
+            rows_num=10, query=CREATE, connection=self.local_conn
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=True))
@@ -132,8 +122,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_j_select_single_page(self):
         """SELECT single page"""
         paginator = QueryPaginator(
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         res = list(paginator.feeder(forward=True))
         self.assertEqual(len(res), 25)
@@ -143,8 +132,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_k_select_single_page_forward(self):
         """SELECT single (last) page forward"""
         paginator = QueryPaginator(
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=True))
@@ -155,8 +143,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_l_select_single_page_backward(self):
         """SELECT single (last) page backward"""
         paginator = QueryPaginator(
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=False))
@@ -208,9 +195,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_p_select_3fwd_1bwd(self):
         """SELECT 3 page forward and 1 backward"""
         paginator = QueryPaginator(
-            rows_num=7,
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            rows_num=7, query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         for _ in range(3):
             _ = list(paginator.feeder(forward=True))
@@ -222,9 +207,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_q_select_4fwd(self):
         """SELECT 3 page forward and 1 forward up to the end"""
         paginator = QueryPaginator(
-            rows_num=7,
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            rows_num=7, query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         for _ in range(3):
             _ = list(paginator.feeder(forward=True))
@@ -236,9 +219,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_r_select_6fwd_1bwd(self):
         """SELECT 6 page forward and 3 backward"""
         paginator = QueryPaginator(
-            rows_num=7,
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            rows_num=7, query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         for _ in range(6):
             _ = list(paginator.feeder(forward=True))
@@ -250,9 +231,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_s_select_6fwd(self):
         """SELECT 6 forward beyond the end"""
         paginator = QueryPaginator(
-            rows_num=7,
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            rows_num=7, query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         for _ in range(6):
             res = list(paginator.feeder(forward=True))
@@ -263,9 +242,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_t_select_6bwd(self):
         """SELECT backward beyond the end"""
         paginator = QueryPaginator(
-            rows_num=7,
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            rows_num=7, query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         for _ in range(4):
             res = list(paginator.feeder(forward=True))
@@ -278,9 +255,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_u_select_6bwd_2fwd(self):
         """SELECT backward beyond the end"""
         paginator = QueryPaginator(
-            rows_num=7,
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            rows_num=7, query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         for _ in range(4):
             res = list(paginator.feeder(forward=True))
@@ -295,9 +270,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_u_select_6fwd_3bwd(self):
         """SELECT 6 forward and 3 backward"""
         paginator = QueryPaginator(
-            rows_num=7,
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            rows_num=7, query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         for _ in range(6):
             res = list(paginator.feeder(forward=True))
@@ -310,9 +283,7 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
     def test_v_select_10fwd_10bwd_2fwd(self):
         """SELECT 10 forward and 10 backward and 2 forward"""
         paginator = QueryPaginator(
-            rows_num=7,
-            query=SELECT,
-            connection=TestSQLitePaginatorFeeder.conn,
+            rows_num=7, query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         for _ in range(10):
             res = list(paginator.feeder(forward=True))
