@@ -20,7 +20,7 @@ Simple database browser with pagination support. SQLite and PostgreSQL supported
 ```python3 app.py``` or ```./app.py```
 
 # Tests
-...
+From project's folder run: ```python3 -m unittest -v tests/test_*.py```
 
 # License
 GPL v3
