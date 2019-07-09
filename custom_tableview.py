@@ -5,7 +5,7 @@ from PyQt5.QtCore import pyqtSignal, Qt
 class CustomTableView(QTableView):
     """
     This class inherits standard QTableView and for the only purpose is
-    to handle mouse wheel and some keys which shines conjuction with query
+    to handle mouse wheel and some keys which shines in conjuction with query
     paginator.
     Handling mouse wheel and keys gives user the ability to flawlessly walk
     thru pages.

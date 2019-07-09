@@ -3,6 +3,12 @@ from PyQt5.QtCore import QVariant, Qt
 
 
 class TableModel(QAbstractTableModel):
+    """
+    This class inherits standard QAbstractTableModel and adds neccessary
+    handlers.
+    All names left intact with Qt naming scheme.
+    """
+
     # def __init__(self, parent=None, input_data=[], columns=[]):
     def __init__(self, parent=None, columns=None):
         super().__init__(parent)
