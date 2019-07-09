@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/proway2/dbmp.svg?branch=master)](https://travis-ci.org/proway2/dbmp)
+
 # dbmp
 
 **PostgreSQL - yet to be tested.**
