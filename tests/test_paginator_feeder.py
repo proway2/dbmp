@@ -234,8 +234,8 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, list(range(1, 11)))
         # row number
-        # row_nums = sorted((i[1] for i in res))
-        # self.assertEqual(row_nums, list(range(1, 11)))
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(1, 11)))
         # page number
         self.assertEqual(paginator.current_page, 1)
 
@@ -248,7 +248,9 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, [])
 
@@ -262,7 +264,9 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         for _ in range(3):
             _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, [])
 
@@ -274,9 +278,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         for _ in range(3):
             _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 7)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, list(range(8, 15)))
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(8, 15)))
+        # page number
+        self.assertEqual(paginator.current_page, 2)
 
     def test_q_select_4fwd(self):
         """SELECT 3 page forward and 1 forward up to the end"""
@@ -286,9 +297,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         for _ in range(3):
             _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 4)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, list(range(22, 26)))
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(22, 26)))
+        # page number
+        self.assertEqual(paginator.current_page, 4)
 
     def test_r_select_6fwd_1bwd(self):
         """SELECT 6 page forward and 3 backward"""
@@ -298,9 +316,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         for _ in range(6):
             _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 7)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, list(range(15, 22)))
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(15, 22)))
+        # page number
+        self.assertEqual(paginator.current_page, 3)
 
     def test_s_select_6fwd(self):
         """SELECT 6 forward beyond the end"""
@@ -309,9 +334,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         for _ in range(6):
             res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, [])
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, [])
+        # page number
+        self.assertEqual(paginator.current_page, 4)
 
     def test_t_select_6bwd(self):
         """SELECT backward beyond the end"""
@@ -322,12 +354,19 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
             res = list(paginator.feeder(forward=True))
         for _ in range(6):
             res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, [])
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, [])
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
-    def test_u_select_6bwd_2fwd(self):
-        """SELECT backward beyond the end"""
+    def test_u_select_4fwd_6bwd_2fwd(self):
+        """SELECT full forward, backward beyond the end, forward 2 pages"""
         paginator = QueryPaginator(
             rows_num=7, query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
@@ -337,9 +376,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
             res = list(paginator.feeder(forward=False))
         for _ in range(2):
             res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 7)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, list(range(15, 22)))
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(15, 22)))
+        # page number
+        self.assertEqual(paginator.current_page, 3)
 
     def test_u_select_6fwd_3bwd(self):
         """SELECT 6 forward and 3 backward"""
@@ -350,9 +396,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
             res = list(paginator.feeder(forward=True))
         for _ in range(3):
             res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 7)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, list(range(1, 8)))
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(1, 8)))
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_v_select_10fwd_10bwd_2fwd(self):
         """SELECT 10 forward and 10 backward and 2 forward"""
@@ -365,10 +418,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
             res = list(paginator.feeder(forward=False))
         for _ in range(2):
             res = list(paginator.feeder(forward=True))
-
+        # number of rows
         self.assertEqual(len(res), 7)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, list(range(15, 22)))
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(15, 22)))
+        # page number
+        self.assertEqual(paginator.current_page, 3)
 
 
 if __name__ == "__main__":
