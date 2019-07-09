@@ -1,7 +1,7 @@
 import unittest
 import sqlite3
 from paginator import QueryPaginator
-from settings import NW_SQLITE
+from settings import NW_SELECT, NW_SQLITE
 
 
 class TestSQLitePaginatorInit(unittest.TestCase):
@@ -37,8 +37,7 @@ class TestSQLitePaginatorInit(unittest.TestCase):
 
     def test_all_is_good(self):
         """Query and Connection are both good"""
-        query = "select * from 'order'"
-        paginator = QueryPaginator(query=query, connection=self.conn_file)
+        paginator = QueryPaginator(query=NW_SELECT, connection=self.conn_file)
         self.assertIsInstance(paginator, QueryPaginator)
 
     def test_rows_num_less_1(self):
