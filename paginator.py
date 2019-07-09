@@ -1,4 +1,9 @@
 class QueryPaginator:
+    """
+    Takes query as input and feeds its data to the customer.
+    Feeder can go forward or backward.
+    """
+
     def __init__(self, rows_num: int = 1000, query: str = "", connection=None):
         if not connection:
             raise ValueError("no connection provided")
@@ -24,9 +29,7 @@ class QueryPaginator:
         self.__execute_query(self.__query)
         self.__fetched = False
 
-    def __execute_query(
-        self, query: str = "", reset_counter: bool = True
-    ) -> bool:
+    def __execute_query(self, query: str = "") -> bool:
         """Executes query"""
         # let's try to execute query
         # obtain the cursor before the query
@@ -41,12 +44,12 @@ class QueryPaginator:
         self.__conn.commit()
         # reset variables
         self.__fetched = False
-        if reset_counter:
-            self.__current_page = 0
+        self.__current_page = 0
         return True
 
     @property
-    def fetched(self):
+    def fetched(self) -> bool:
+        """Returns status if the query fetched already."""
         return self.__fetched
 
     @property
@@ -88,27 +91,33 @@ class QueryPaginator:
         return self.__ddl_feeder
 
     def __dml_feeder(self, forward=True):
-        """Feeder for DML (SELECT) type queries."""
+        """Pager for DML query, handles backward direction."""
         if not forward:
             if self.__current_page <= 1:
                 raise StopIteration()
-            # in order to get back we need to rerun query from the start
-            # REexecute query
-            self.__execute_query(self.__query, reset_counter=False)
-            # fast forward to the desired page
-            self.__fast_forward()
-        # select
+            # to fast forward for certain number of runs we must save cur page
+            ff_runs = self.__current_page
+            # ff must be done from the very begining, so reexecute query
+            self.__execute_query(self.__query)
+            self.__fast_forward(ff_runs - 2)
+        # feed data to customer
+        yield from self.__select_feeder()
+
+    def __select_feeder(self):
+        """
+        Feeds results from the select query. Forward direction only.
+        Feeds tuple (<row data>, <row number>)
+        """
         for num, row in enumerate(
-            self.__curs.fetchmany(self.__number_of_rows)
+            self.__curs.fetchmany(self.__number_of_rows), 1
         ):
-            yield row, self.__current_page * self.__number_of_rows + num + 1
-        # in order to maintain current_page at the actual figure we
-        # must raise exception when empty runs discovered
+            yield row, self.__current_page * self.__number_of_rows + num
         try:
             num
         except UnboundLocalError:
             raise StopIteration()
-        self.__change_current_page(forward)
+        else:
+            self.__change_current_page(True)
 
     def __change_current_page(self, forward: bool = True):
         """Maintaines the current_page at the actual figure."""
@@ -119,11 +128,11 @@ class QueryPaginator:
                 0 if self.__current_page <= 1 else self.__current_page - 1
             )
 
-    def __fast_forward(self):
+    def __fast_forward(self, runs: int = 0):
         """Fast forward some pages to make going back possible."""
-        # dry runs
-        for _ in range(0, self.__current_page - 2):
-            self.__curs.fetchmany(self.__number_of_rows)
+        for _ in range(0, runs):
+            for _ in self.__select_feeder():
+                pass
 
     def __ddl_feeder(self, forward=True):
         """Feeder for DDL type queries."""
