@@ -36,8 +36,14 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
             connection=TestSQLitePaginatorFeeder.conn,
         )
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 1)
+        # actual result
         self.assertEqual(res[0][0][0], "Successfully executed!")
+        # row number
+        self.assertEqual(res[0][1], 1)
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_b_create_forward(self):
         """CREATE forward again"""
@@ -46,7 +52,10 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_c_create_backward(self):
         """CREATE backward"""
@@ -55,7 +64,10 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_d_create_backward_backward(self):
         """CREATE backward and backward"""
@@ -64,7 +76,10 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         _ = list(paginator.feeder(forward=False))
         res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_e_insert(self):
         """INSERT simple"""
@@ -74,8 +89,14 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
             connection=TestSQLitePaginatorFeeder.conn,
         )
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 1)
+        # actual result
         self.assertEqual(res[0][0][0], "Affected rows: 25")
+        # row number
+        self.assertEqual(res[0][1], 1)
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_f_insert_forward(self):
         """INSERT forward"""
@@ -86,7 +107,10 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_g_insert_backward(self):
         """INSERT backward"""
@@ -97,7 +121,10 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_h_select(self):
         """SELECT simple"""
@@ -107,9 +134,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
             connection=TestSQLitePaginatorFeeder.conn,
         )
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 10)
         vals = sorted((i[0][1] for i in res))
+        # actual result
         self.assertEqual(vals, list(range(1, 11)))
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(1, 11)))
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_i_select_forward(self):
         """SELECT page 1 and page 2"""
@@ -120,9 +154,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 10)
         vals = sorted((i[0][1] for i in res))
+        # actual result
         self.assertEqual(vals, list(range(11, 21)))
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(11, 21)))
+        # page number
+        self.assertEqual(paginator.current_page, 2)
 
     def test_j_select_single_page(self):
         """SELECT single page"""
@@ -130,9 +171,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
             query=SELECT, connection=TestSQLitePaginatorFeeder.conn
         )
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 25)
         vals = sorted((i[0][1] for i in res))
+        # actual result
         self.assertEqual(vals, list(range(1, 26)))
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, list(range(1, 26)))
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_k_select_single_page_forward(self):
         """SELECT single (last) page forward"""
@@ -141,9 +189,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=True))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, [])
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, [])
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_l_select_single_page_backward(self):
         """SELECT single (last) page backward"""
@@ -152,9 +207,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         )
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 0)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, [])
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, [])
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_m_select_forward_backward(self):
         """SELECT second page backward"""
@@ -166,9 +228,16 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         _ = list(paginator.feeder(forward=True))
         _ = list(paginator.feeder(forward=True))
         res = list(paginator.feeder(forward=False))
+        # number of rows
         self.assertEqual(len(res), 10)
+        # actual result
         vals = sorted((i[0][1] for i in res))
         self.assertEqual(vals, list(range(1, 11)))
+        # row number
+        # row_nums = sorted((i[1] for i in res))
+        # self.assertEqual(row_nums, list(range(1, 11)))
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
     def test_n_select_first_page_backward(self):
         """SELECT first (multi) page backward"""
