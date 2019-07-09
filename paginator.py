@@ -94,7 +94,7 @@ class QueryPaginator:
         """Pager for DML query, handles backward direction."""
         if not forward:
             if self.__current_page <= 1:
-                raise StopIteration()
+                return  # StopIteration
             # to fast forward for certain number of runs we must save cur page
             ff_runs = self.__current_page
             # ff must be done from the very begining, so reexecute query
@@ -108,25 +108,14 @@ class QueryPaginator:
         Feeds results from the select query. Forward direction only.
         Feeds tuple (<row data>, <row number>)
         """
+        runs = False
         for num, row in enumerate(
             self.__curs.fetchmany(self.__number_of_rows), 1
         ):
+            runs = True
             yield row, self.__current_page * self.__number_of_rows + num
-        try:
-            num
-        except UnboundLocalError:
-            raise StopIteration()
-        else:
-            self.__change_current_page(True)
-
-    def __change_current_page(self, forward: bool = True):
-        """Maintaines the current_page at the actual figure."""
-        if forward:
+        if runs:
             self.__current_page += 1
-        else:
-            self.__current_page = (
-                0 if self.__current_page <= 1 else self.__current_page - 1
-            )
 
     def __fast_forward(self, runs: int = 0):
         """Fast forward some pages to make going back possible."""
@@ -138,7 +127,7 @@ class QueryPaginator:
         """Feeder for DDL type queries."""
         # creates, inserts, updates, deletes
         if not forward or self.__fetched:
-            raise StopIteration()
+            return  # StopIteration
         if self.__curs.rowcount == -1:
             # create statement
             yield ("Successfully executed!",), 1
