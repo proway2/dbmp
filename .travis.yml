@@ -2,5 +2,4 @@ language: python
 python:
   - "3.6"
 script:
-#  - cd proway2/dbmp
   - python -m unittest -v tests/test_*.py
