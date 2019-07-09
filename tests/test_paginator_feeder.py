@@ -9,16 +9,23 @@ from paginator import QueryPaginator
 class TestSQLitePaginatorFeeder(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        """
+        Connection for the most testcases that run in order and
+        need results from previous query
+        """
         cls.conn = sqlite3.connect(":memory:")
 
     @classmethod
     def tearDownClass(cls):
+        """Connection for the most testcases that run in order"""
         cls.conn.close()
 
     def setUp(self):
+        """Some test cases need local SQLite connection"""
         self.local_conn = sqlite3.connect(":memory:")
 
     def tearDown(self):
+        """Some test cases need local SQLite connection"""
         self.local_conn.close()
 
     def test_a_create_simple(self):
