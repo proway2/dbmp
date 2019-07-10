@@ -1,5 +1,5 @@
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QTableView
-from PyQt5.QtCore import pyqtSignal, Qt
 
 
 class CustomTableView(QTableView):

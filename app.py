@@ -1,14 +1,15 @@
 #!/usr/bin/python3
-import sys
-import os
 import importlib
+import os
+import sys
 from datetime import datetime
-from PyQt5 import uic, QtCore, QtWidgets
-from PyQt5.Qt import QMessageBox, pyqtSlot, QWidget
 
+from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5.Qt import QMessageBox, QWidget, pyqtSlot
+
+from custom_tableview import CustomTableView
 from model import TableModel
 from paginator import QueryPaginator
-from custom_tableview import CustomTableView
 
 # we have to inherit the form from UI file, so we need to load it first.
 FORM_CLASS, _ = uic.loadUiType(
@@ -73,6 +74,10 @@ class MainForm(QWidget, FORM_CLASS):
         self.close()
 
     def keyPressEvent(self, *args, **kwargs):
+        """
+        Overriding of parent's (Qt) method, that's why camelCase used.
+        Ctrl+Enter executes query.
+        """
         # check if Ctrl+Enter|Return pressed
         if (
             args[0].key() == QtCore.Qt.Key_Enter
