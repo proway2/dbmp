@@ -2,7 +2,7 @@ import sqlite3
 import unittest
 
 from paginator import QueryPaginator
-from settings import CREATE, INSERT, SELECT
+from settings import CREATE, INSERT, SELECT, SELECT_EMPTY
 
 # TESTS ORDER MATTERS!
 
@@ -429,6 +429,23 @@ class TestSQLitePaginatorFeeder(unittest.TestCase):
         self.assertEqual(row_nums, list(range(15, 22)))
         # page number
         self.assertEqual(paginator.current_page, 3)
+
+    def test_w_select_empty(self):
+        """SELECT with no results"""
+        paginator = QueryPaginator(
+            query=SELECT_EMPTY, connection=TestSQLitePaginatorFeeder.conn
+        )
+        res = list(paginator.feeder(forward=True))
+        # number of rows
+        self.assertEqual(len(res), 0)
+        vals = sorted((i[0][1] for i in res))
+        # actual result
+        self.assertEqual(vals, [])
+        # row number
+        row_nums = sorted((i[1] for i in res))
+        self.assertEqual(row_nums, [])
+        # page number
+        self.assertEqual(paginator.current_page, 1)
 
 
 if __name__ == "__main__":
