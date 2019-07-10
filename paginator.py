@@ -15,32 +15,26 @@ class QueryPaginator:
             raise ValueError("unexpected connection")
         if rows_num < 1:
             raise ValueError("number of rows must be greater than 0")
-        # define default page
+        # default page
         self.__current_page = 0
-        # define default number of rows per fetch
+        # default number of rows per fetch
         self.__number_of_rows = rows_num
-        # we need to run query on the open connection
+
         self.__conn = connection
-        # we need to know current cursor
         self.__curs = None
-        # we need the query to run
         self.__query = query
+
         # execute query at creation
         self.__execute_query(self.__query)
         self.__fetched = False
 
     def __execute_query(self, query: str = "") -> bool:
         """Executes query"""
-        # let's try to execute query
-        # obtain the cursor before the query
         if not self.__curs:
-            try:
-                self.__curs = self.__conn.cursor()
-            except Exception:
-                raise
+            # exception silently rerisen
+            self.__curs = self.__conn.cursor()
         # execute query
         self.__curs.execute(query)
-        # commit it just in case
         self.__conn.commit()
         # reset variables
         self.__fetched = False
@@ -65,15 +59,16 @@ class QueryPaginator:
     def is_data_query(self):
         """Returns True if this is 'select' query"""
         if self.__query and self.__curs:
+            # explicitly check for None for the sake of PEP 249
             return False if self.__curs.description is None else True
 
     def headers(self) -> list:
         """Returns list of headers for the query"""
         # return list of the columns headers
         if self.is_data_query:
-            # DML
+            # select
             return [descr[0] for descr in self.__curs.description]
-        # DDL
+        # create, insert, delete
         return ["Result"]
 
     def feeder(self, forward: bool = True):
@@ -133,4 +128,4 @@ class QueryPaginator:
             yield ("Successfully executed!",), 1
         else:
             # insert or update or delete
-            yield ("Affected rows: {}".format(self.__curs.rowcount),), 1
+            yield (f"Affected rows: {self.__curs.rowcount}",), 1
