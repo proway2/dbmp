@@ -1,5 +1,6 @@
-import unittest
 import sqlite3
+import unittest
+
 from paginator import QueryPaginator
 from settings import NW_SELECT, NW_SQLITE
 

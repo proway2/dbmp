@@ -1,15 +1,16 @@
-import unittest
 import sqlite3
+import unittest
+
 from paginator import QueryPaginator
 from settings import (
     CREATE,
-    INSERT,
-    UPDATE,
-    UPDATE_EMPTY,
     DELETE,
     DELETE_EMPTY,
+    INSERT,
     SELECT,
     SELECT_EMPTY,
+    UPDATE,
+    UPDATE_EMPTY,
 )
 
 

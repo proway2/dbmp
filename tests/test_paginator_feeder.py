@@ -1,7 +1,8 @@
-import unittest
 import sqlite3
-from settings import CREATE, INSERT, SELECT
+import unittest
+
 from paginator import QueryPaginator
+from settings import CREATE, INSERT, SELECT
 
 # TESTS ORDER MATTERS!
 

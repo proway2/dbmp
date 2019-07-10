@@ -1,7 +1,8 @@
-import unittest
 import sqlite3
+import unittest
+
 from paginator import QueryPaginator
-from settings import SELECT, CREATE, INSERT, UPDATE, DELETE
+from settings import CREATE, DELETE, INSERT, SELECT, UPDATE
 
 
 class TestSQLitePaginatorIsDataQuery(unittest.TestCase):

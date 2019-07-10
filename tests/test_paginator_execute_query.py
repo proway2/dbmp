@@ -1,7 +1,8 @@
-import unittest
 import sqlite3
+import unittest
+
 from paginator import QueryPaginator
-from settings import NW_SQLITE, NW_SELECT, NW_SELECT_HUGE, SELECT
+from settings import NW_SELECT, NW_SELECT_HUGE, NW_SQLITE, SELECT
 
 
 class TestSQLitePaginatorExecuteQuery(unittest.TestCase):
