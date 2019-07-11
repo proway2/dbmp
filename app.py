@@ -98,17 +98,11 @@ class MainForm(QWidget, FORM_CLASS):
         try:
             self.conn = self.try_to_connect()
         except (
-            ValueError,
             ModuleNotFoundError,
             RuntimeError,
+            ValueError,
+            self.db_provider.Error,
             self.db_provider.Warning,
-            self.db_provider.InterfaceError,
-            self.db_provider.DatabaseError,
-            self.db_provider.DataError,
-            self.db_provider.OperationalError,
-            self.db_provider.IntegrityError,
-            self.db_provider.InternalError,
-            self.db_provider.ProgrammingError,
         ) as err:
             self.message_box(
                 "Error!",
@@ -211,15 +205,9 @@ class MainForm(QWidget, FORM_CLASS):
                 query=self.teQuery.toPlainText().strip(),
             )
         except (
-            self.db_provider.Warning,
-            self.db_provider.InterfaceError,
-            self.db_provider.DatabaseError,
-            self.db_provider.DataError,
-            self.db_provider.OperationalError,
-            self.db_provider.IntegrityError,
-            self.db_provider.InternalError,
-            self.db_provider.ProgrammingError,
             ValueError,
+            self.db_provider.Error,
+            self.db_provider.Warning,
         ) as err:
             self.lblCurrentPage.setText("")
             self.message_box("Error!", str(err), QMessageBox.Critical)
@@ -266,16 +254,7 @@ class MainForm(QWidget, FORM_CLASS):
                 self.model.rows.append(row[1])
             # return the cursor to the previous state
             self.setCursor(savedCursor)
-        except (
-            self.db_provider.Warning,
-            self.db_provider.InterfaceError,
-            self.db_provider.DatabaseError,
-            self.db_provider.DataError,
-            self.db_provider.OperationalError,
-            self.db_provider.IntegrityError,
-            self.db_provider.InternalError,
-            self.db_provider.ProgrammingError,
-        ) as err:
+        except (self.db_provider.Error, self.db_provider.Warning) as err:
             # return the cursor to the previous state
             self.setCursor(savedCursor)
             # unset current page
