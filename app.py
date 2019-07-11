@@ -50,8 +50,8 @@ class MainForm(QWidget, FORM_CLASS):
         self.pbBack.clicked.connect(self.page)
 
         # signals and slots for CustomTableView
-        self.tbvResults.upReached.connect(self.pbBack.click)
-        self.tbvResults.downReached.connect(self.pbForth.click)
+        self.tbvResults.top_reached_signal.connect(self.pbBack.click)
+        self.tbvResults.bottom_reached_signal.connect(self.pbForth.click)
 
     def __add_custom_tableview(self) -> bool:
         """
