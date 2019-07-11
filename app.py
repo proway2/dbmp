@@ -55,7 +55,7 @@ class MainForm(QWidget, FORM_CLASS):
 
     def __add_custom_tableview(self) -> bool:
         """
-        Remove standard QTableView and adds custom CustomTableView to the form.
+        Removes standard QTableView, adds custom CustomTableView to the form.
         """
         self.verticalLayout_2.removeWidget(self.tbvResults)
         self.tbvResults.deleteLater()
@@ -129,54 +129,66 @@ class MainForm(QWidget, FORM_CLASS):
         """Trying to import module for the provider and return it."""
         return importlib.import_module(str(self.providers[provider_name]))
 
-    def __create_new_sqlite_file(self) -> bool:
-        """Returns True if new sqlite file needs to be created"""
-        if (
-            self.leConnection.text().strip() != ":memory:"
-            and not os.path.isfile(self.leConnection.text().strip())
-            and self.message_box(
-                "Attention!",
-                (
-                    f"The file {self.leConnection.text().strip()} does"
-                    " not exist! Do you want to create it?"
-                ),
-                QMessageBox.Warning,
-                buttons=QMessageBox.Ok | QMessageBox.Cancel,
-            )
-            != QMessageBox.Ok
-        ):
-            # User does not want to create file!
-            return False
-        return True
+    def __is_sqlite_db(self) -> bool:
+        """Checks if DB provider is SQLite"""
+        return self.db_provider.__name__ == "sqlite3"
+
+    def __is_db_in_memory(self, db_type: str = ":memory:") -> bool:
+        """
+        Checks if database connection is of type :memory:.
+        Makes sense for SQLite only.
+        """
+        return db_type == ":memory:"
+
+    def __is_file(self, path_str: str = "") -> bool:
+        """Checks if the path is a file."""
+        return os.path.isfile(path_str)
+
+    def __create_sqlite_file(self, file_name: str = ""):
+        """
+        Ckecks if user wants to create new SQLite file.
+        Otherwise rises an exception.
+        """
+        question = (
+            f"The file {file_name} does not exist! Do you want to create it?"
+        )
+        res = self.message_box(
+            "Attention!",
+            question,
+            QMessageBox.Warning,
+            buttons=QMessageBox.Ok | QMessageBox.Cancel,
+        )
+        if res != QMessageBox.Ok:
+            raise RuntimeError("no such file!")
 
     def try_to_connect(self):
         """
-        This function connects to the database with connection string
+        Connects to the database with the connection string
         provided by the user.
         """
-        # there is a connection jump out of here
         if self.conn:
             return self.conn
 
-        # no text - no connection
-        if not self.leConnection.text().strip():
-            raise ValueError("no connection string provided!")
-
-        # let's try to import module
+        # it's unknown what type of provider will user choose, so import here
         self.db_provider = self.__import_provider(
             self.cmbProvider.currentData(0)
         )
 
+        db_conn_str = self.leConnection.text().strip()
+        if not db_conn_str:
+            raise ValueError("no connection string provided!")
+
         # since SQLite DB is a file we need to check if there is such file
         # or user wants to create new one
         if (
-            self.db_provider.__name__ == "sqlite3"
-            and not self.__create_new_sqlite_file()
+            self.__is_sqlite_db()
+            and not self.__is_db_in_memory(db_conn_str)
+            and not self.__is_file(db_conn_str)
         ):
-            raise RuntimeError("no such file!")
+            # Exception might be risen here
+            self.__create_sqlite_file(db_conn_str)
 
-        # create the connection
-        return self.db_provider.connect(self.leConnection.text().strip())
+        return self.db_provider.connect(db_conn_str)
 
     def __is_query_exists(self) -> bool:
         """Checks if query text is present."""
@@ -187,6 +199,7 @@ class MainForm(QWidget, FORM_CLASS):
 
     @pyqtSlot()
     def execute_query(self):
+        """Handles 'Execute' button."""
         if not self.check_connection(False) or not self.__is_query_exists():
             return False
 
@@ -217,14 +230,14 @@ class MainForm(QWidget, FORM_CLASS):
         self.pbForth.clicked.emit()
 
     def __is_forward(self, sender) -> bool:
-        """Returns direction"""
+        """Checks if direction is forward"""
         if sender().objectName() == BACK_BUTTON_NAME:
             return False
         return True
 
     @pyqtSlot()
     def page(self):
-        """Paging query results"""
+        """Pages query results"""
         if not self.paginator:
             return
         self.model = None
@@ -280,43 +293,39 @@ class MainForm(QWidget, FORM_CLASS):
         # update last query result time and page number
         self.__update_time_and_page()
 
-        # if forward:
-        #     self.tbvResults.selectRow(0)
-        # else:
-        #     self.tbvResults.selectRow(self.model.rowCount(None) - 1)
+        if self.__is_forward(self.sender):
+            self.tbvResults.selectRow(0)
+        else:
+            self.tbvResults.selectRow(self.model.rowCount(None) - 1)
         return True
 
     def __update_model_in_view(self):
         """Updates model in view."""
-        # clean the model
         self.tbvResults.setModel(None)
-        # assign the new model
         self.tbvResults.setModel(self.model)
         self.tbvResults.selectRow(0)
 
     def __update_time_and_page(self):
-        """Updates time and page number"""
-        # update last query result time
+        """Updates execution time and page number"""
         self.lblUpdateTime.setText(
             datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
-        # update current page number
         self.lblCurrentPage.setText(str(self.paginator.current_page))
 
     @pyqtSlot()
     def reset_conn(self):
-        # drop the connection if it's established
+        """Resets connection"""
         if self.conn:
             self.conn.close()
             self.conn = None
 
     @pyqtSlot(int)
     def provider_changed(self, index):
-        # when the provider is changed we need to drop the connection
+        """Handles provider change in the providers list box. Resets conn."""
         self.reset_conn()
 
     def message_box(self, text, informative, icon, buttons=QMessageBox.Ok):
-        # just to show informative boxes
+        """Wraps up the QMessageBox"""
         msg = QMessageBox(self)
         msg.setStandardButtons(buttons)
         msg.setDefaultButton(QMessageBox.Ok)
