@@ -58,7 +58,7 @@ class QueryPaginator:
     @property
     def is_data_query(self):
         """Returns True if this is 'select' query"""
-        if self.__query and self.__curs:
+        if all([self.__query, self.__curs]):
             # explicitly check for None for the sake of PEP 249
             return False if self.__curs.description is None else True
 
